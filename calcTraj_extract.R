@@ -34,15 +34,23 @@ s.met.sitestim = 'Metadata_SiteStim' # Column with merged site and stimulation c
 
 # names of two files with paramaters for analysis and experiment
 # these files should be located one folder up of cp.out from which the script is executed
-s.par.plot = 'plotFormat.xlsx'
+s.par.plot = '../plotFormat.xlsx'
+
+####
+## Read parameters from plotFormat.xlsx file
+l.par = myParRead(s.par.plot)
+
+
+####
+## Load experiment description
 
 # The file with experimental description has name dependent on experiment
-# look for all 'xlsx' files in the current working directory
+# look for all 'xlsx' files in a directory above current working directory
 s.fname.tmp = list.files(
-  path = '../.',
+  path = '..',
   pattern = '*.xlsx',
   recursive = FALSE,
-  full.names = FALSE
+  full.names = TRUE
 )
 
 # take only those filenames that aren't equal to s.par.plot
@@ -54,29 +62,7 @@ if (length(s.par.exp) > 1) {
 }
 
 
-####
-## Read parameters from plotFormat.xlsx file
-
-df.par = read.xlsx(
-  paste0('../', s.par.plot),
-  sheetIndex = 1,
-  header = FALSE,
-  as.data.frame = TRUE,
-  colIndex = 1:2,
-  colClasses = rep("character", 2),
-  stringsAsFactors = FALSE
-)
-
-# convert data frame with parameters to a list 
-l.par = split(df.par[, 2], df.par[, 1])
-
-# convert strings with digits to numeric and strings with TRUE/FALSE to logical
-l.par = myConvertStringListToTypes(l.par)
-
-
-####
-## Load experiment description
-dt.exp = myExpRead(paste0('../', s.par.exp), inStartRow = 3)
+dt.exp = myExpRead(s.par.exp, inStartRow = 3)
 
 
 # obtain stimulation time points from the experiment file
@@ -139,45 +125,19 @@ s.met.site = l.par$metadata.site
 s.met.time = l.par$metadata.time
 s.met.trackabel = l.par$metadata.track
 
-# Assign column with object label
-# This is different from trackObjectLabel; 
-# it hold id from segmentation. Handy for
-# stitching with YFP acquired at the end of experiment.
-s.met.objlabel = names(dt.nuc)[names(dt.nuc) %like% '.*ObjectNumber$']
 
-# assign intensities from nuc and cyto (raw & corr)
-s.flErk.nuc.raw  = names(dt.nuc)[names(dt.nuc) %like% '^objNuc.*MeanIntensity.*Erk$']
-s.flErk.nuc.corr = names(dt.nuc)[names(dt.nuc) %like% '^objNuc.*MeanIntensity.*ErkCorr']
+# extract columns with measurements of Erk-KTR, NucMem, position XY
+l.met = myMetExtract(names(dt.nuc))
 
-s.flErk.cyt.raw  = names(dt.nuc)[names(dt.nuc) %like% '^objCyt.*MeanIntensity.*Erk$']
-s.flErk.cyt.corr = names(dt.nuc)[names(dt.nuc) %like% '^objCyt.*MeanIntensity.*ErkCorr']
+# select all columns with measurements;
+# here from modules Intensity, AreaShape, TrackObjects
+# Also, remove s.met.trackabel from this list because it's defined from plotFormat file
+s.cols.meas = setdiff(names(dt.nuc)[grep('.*_Intensity_.*|.*_AreaShape_.*|.*_TrackObjects_.*', names(dt.nuc))],
+                      s.met.trackabel)
 
+# add position and ObjectNumber columns
+s.cols.meas = c(s.cols.meas, l.met$pos.x, l.met$pos.y, l.met$objLabel)
 
-# assign position columns
-s.pos.x =  names(dt.nuc)[names(dt.nuc) %like% '.*ocation_Center_X']
-s.pos.y =  names(dt.nuc)[names(dt.nuc) %like% '.*ocation_Center_Y']
-
-
-##### 
-# extract fl.int from NucMem
-# this should be conditional; whether these columns exist in the dataset
-
-s.flNuc.nuc.raw  = names(dt.nuc)[names(dt.nuc) %like% '^objNuc.*MeanIntensity.*Nuc$']
-s.flNuc.nuc.corr = names(dt.nuc)[names(dt.nuc) %like% '^objNuc.*MeanIntensity.*NucCorr.*$']
-if (length(s.flNuc.nuc.raw) > 0 & length(s.flNuc.nuc.corr)) {
-  b.nucMem = TRUE
-  s.cols.meas = c(s.met.objlabel,
-                  s.flErk.nuc.raw, s.flErk.nuc.corr, 
-                  s.flErk.cyt.raw, s.flErk.cyt.corr, 
-                  s.flNuc.nuc.raw, s.flNuc.nuc.corr,
-                  s.pos.x, s.pos.y)
-} else {
-  b.nucMem = FALSE
-  s.cols.meas = c(s.met.objlabel,
-                  s.flErk.nuc.raw, s.flErk.nuc.corr, 
-                  s.flErk.cyt.raw, s.flErk.cyt.corr, 
-                  s.pos.x, s.pos.y)
-}
 # s.cols.meas stores columns relevant for further calculation
 # These will be retained in the output of myTrajExtr f-n
 # and saved to tCoursesSelected.csv
@@ -247,7 +207,7 @@ setkeyv(dt.sel, c(s.met.site, s.met.trackabel, s.met.time))
 
 #####
 ## save file with selected trajectories omitted
-s.cols.omit = c('Image_Metadata_T', s.met.sitestim, 'TrackObjects_Label_uni')
+s.cols.omit = c(s.met.time, s.met.sitestim, 'TrackObjects_Label_uni')
 
 if (l.par$plot.save) {
   write.csv(x = dt.sel[, setdiff(names(dt.sel), s.cols.omit), with = FALSE], 
@@ -281,7 +241,7 @@ p.out = list()
 p.out$traj_ERK_cytoVnuc_noIllumCorr = myGgplotTraj(
   dt.arg = dt.sel,
   x.arg = "RealTime",
-  y.arg = paste(s.flErk.cyt.raw,  '/', s.flErk.nuc.raw),
+  y.arg = paste(l.met$flErk.mn.cyt.raw,  '/', l.met$flErk.mn.nuc.raw),
   group.arg = "TrackObjects_Label_uni",
   xlab.arg = "Time (min)",
   ylab.arg = "Erk-KTR: cytoplasmic vs nuclear (mean fl.int.)",
@@ -300,7 +260,7 @@ p.out$traj_ERK_cytoVnuc_noIllumCorr = myGgplotTraj(
 p.out$traj_ERK_cytoVnuc_illumCorr = myGgplotTraj(
   dt.arg = dt.sel,
   x.arg = "RealTime",
-  y.arg = paste(s.flErk.cyt.corr,  '/', s.flErk.nuc.corr),
+  y.arg = paste(l.met$flErk.mn.cyt.corr,  '/', l.met$flErk.mn.nuc.corr),
   group.arg = "TrackObjects_Label_uni",
   xlab.arg = "Time (min)",
   ylab.arg = "Erk-KTR: cytoplasmic vs nuclear (mean fl.int.)",
@@ -323,7 +283,7 @@ p.out$traj_ERK_cytoVnuc_illumCorr = myGgplotTraj(
 p.out$traj_ERK_cytoVnuc_illumCorr_perCond = myGgplotTraj(
   dt.arg = dt.sel,
   x.arg = "RealTime",
-  y.arg = paste(s.flErk.cyt.corr,  '/', s.flErk.nuc.corr),
+  y.arg = paste(l.met$flErk.mn.cyt.corr,  '/', l.met$flErk.mn.nuc.corr),
   group.arg = "TrackObjects_Label_uni",
   xlab.arg = "Time (min)",
   ylab.arg = "Erk-KTR: cytoplasmic vs nuclear (mean fl.int.)",
@@ -343,7 +303,7 @@ p.out$traj_ERK_cytoVnuc_illumCorr_perCond = myGgplotTraj(
 p.out$traj_ERK_nuc_illumCorr = myGgplotTraj(
   dt.arg = dt.sel,
   x.arg = "RealTime",
-  y.arg = s.flErk.nuc.corr,
+  y.arg = l.met$flErk.mn.nuc.corr,
   group.arg = "TrackObjects_Label_uni",
   xlab.arg = "Time (min)",
   ylab.arg = "Erk-KTR:  nuclear (mean fl.int.)",
@@ -364,7 +324,7 @@ p.out$traj_ERK_nuc_illumCorr = myGgplotTraj(
 p.out$traj_ERK_nucInv_illumCorr = myGgplotTraj(
   dt.arg = dt.sel,
   x.arg = "RealTime",
-  y.arg = paste("1 /", s.flErk.nuc.corr),
+  y.arg = paste("1 /", l.met$flErk.mn.nuc.corr),
   group.arg = "TrackObjects_Label_uni",
   xlab.arg = "Time (min)",
   ylab.arg = "Erk-KTR: 1 / nuclear (mean fl.int.)",

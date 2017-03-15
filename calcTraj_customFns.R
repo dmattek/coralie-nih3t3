@@ -51,6 +51,33 @@ myConvertStringListToTypes <- function(in.l) {
   return(in.l)
 }
 
+# Read a two column xlsx file with parameters
+# 1st column contains parameter names
+# 2nd column contais parameter values
+# Returns a list with parameters and ther values
+myParRead = function(in.fname) {
+  require(xlsx)
+  
+  loc.df.par = read.xlsx(
+    s.par.plot,
+    sheetIndex = 1,
+    header = FALSE,
+    as.data.frame = TRUE,
+    colIndex = 1:2,
+    colClasses = rep("character", 2),
+    stringsAsFactors = FALSE
+  )
+  
+  # convert data frame with parameters to a list 
+  l.par = split(loc.df.par[, 2], loc.df.par[, 1])
+  
+  # convert strings with digits to numeric and strings with TRUE/FALSE to logical
+  l.par = myConvertStringListToTypes(l.par)
+  
+  return(l.par)
+}
+
+
 # f-n to read experimental description
 # returns data table with entire experimental data
 myExpRead = function(inFname, inCleanRowCol = TRUE, inCleanMissing = TRUE, inStartRow = 1, inSheetName = 1, inRowIndex = NULL) {
@@ -118,6 +145,79 @@ myFread = function(fileIn) {
     'Image_Metadata_Z'
   )
   dt.nuc[, (s.cols) := NULL]
+}
+
+
+# Assign column names with measurements
+myMetExtract = function(in.cols) {
+  loc.l = list()
+  
+  # Assign column with object label
+  # This is different from trackObjectLabel; 
+  # it hold id from segmentation. Handy for
+  # stitching with YFP acquired at the end of experiment.
+  loc.tmp = in.cols[in.cols %like% '.*_ObjectNumber$']
+  if (length(loc.tmp == 1))
+    loc.l$objLabel = loc.tmp
+  
+  # assign intensities from nuc and cyto (raw & corr)
+  loc.tmp  = in.cols[in.cols %like% '^objNuc.*_MeanIntensity_.*(ERK|Erk|erk)$']
+  if (length(loc.tmp == 1))
+    loc.l$flErk.mn.nuc.raw = loc.tmp
+  
+  
+  loc.tmp = in.cols[in.cols %like% '^objNuc.*_MeanIntensity_.*(ERK|Erk|erk)(c|C)orr']
+  if (length(loc.tmp == 1))
+    loc.l$flErk.mn.nuc.corr = loc.tmp
+  
+  loc.tmp  = in.cols[in.cols %like% '^objCyt.*_MeanIntensity_.*(ERK|Erk|erk)$']
+  if (length(loc.tmp == 1))
+    loc.l$flErk.mn.cyt.raw = loc.tmp
+  
+  loc.tmp = in.cols[in.cols %like% '^objCyt.*_MeanIntensity_.*(ERK|Erk|erk)(c|C)orr']
+  if (length(loc.tmp == 1))
+    loc.l$flErk.mn.cyt.corr = loc.tmp
+  
+  
+  loc.tmp  = in.cols[in.cols %like% '^objCell.*_MeanIntensity_.*(ERK|Erk|erk)$']
+  if (length(loc.tmp == 1))
+    loc.l$flErk.mn.cell.raw = loc.tmp
+  
+  loc.tmp = in.cols[in.cols %like% '^objCell.*_MeanIntensity_.*(ERK|Erk|erk)(c|C)orr']
+  if (length(loc.tmp == 1))
+    loc.l$flErk.mn.cell.corr = loc.tmp
+  
+
+    # assign position columns
+  loc.tmp =  in.cols[in.cols %like% '.*ocation_Center_X']
+  if (length(loc.tmp == 1))
+    loc.l$pos.x = loc.tmp
+  
+  loc.tmp =  in.cols[in.cols %like% '.*ocation_Center_Y']
+  if (length(loc.tmp == 1))
+    loc.l$pos.y = loc.tmp
+  
+  
+  # extract fl.int from NucMem: these might not always be available
+  loc.tmp  = in.cols[in.cols %like% '^objNuc.*MeanIntensity.*Nuc$']
+  if (length(loc.tmp == 1))
+    loc.l$flNuc.mn.nuc.raw = loc.tmp
+  
+  loc.tmp = in.cols[in.cols %like% '^objNuc.*MeanIntensity.*NucCorr.*$']
+  if (length(loc.tmp == 1))
+    loc.l$flNuc.mn.nuc.corr = loc.tmp
+  
+  loc.tmp = in.cols[in.cols %like% '^objNuc.*MeanIntensity.*NucCorr.*$']
+  if (length(loc.tmp == 1))
+    loc.l$flNuc.mn.nuc.corr = loc.tmp
+  
+  
+  loc.tmp = in.cols[in.cols %like% '.*RealTime.*$']
+  if (length(loc.tmp == 1))
+    loc.l$rt = loc.tmp
+  
+  
+  return(loc.l)
 }
 
 
