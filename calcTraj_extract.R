@@ -40,6 +40,9 @@ s.par.plot = '../plotFormat.xlsx'
 ## Read parameters from plotFormat.xlsx file
 l.par = myParRead(s.par.plot)
 
+# Create directory for plots and output in the currenty working directory
+ifelse(!dir.exists(file.path(".", l.par$dir.plot)), dir.create(file.path(".", l.par$dir.plot)), FALSE)
+
 
 ####
 ## Load experiment description
@@ -132,7 +135,7 @@ l.met = myMetExtract(names(dt.nuc))
 # select all columns with measurements;
 # here from modules Intensity, AreaShape, TrackObjects
 # Also, remove s.met.trackabel from this list because it's defined from plotFormat file
-s.cols.meas = setdiff(names(dt.nuc)[grep('.*_Intensity_.*|.*_AreaShape_.*|.*_TrackObjects_.*', names(dt.nuc))],
+s.cols.meas = setdiff(names(dt.nuc)[grep('.*_Intensity_.*|.*_AreaShape_.*|.*_TrackObjects_.*|.*_Neighbors_.*', names(dt.nuc))],
                       s.met.trackabel)
 
 # add position and ObjectNumber columns
@@ -231,8 +234,6 @@ if (l.par$plot.save)
 #####
 ## Plotting
 
-# Create directory for plots in the currenty working directory
-ifelse(!dir.exists(file.path(".", l.par$dir.plot)), dir.create(file.path(".", l.par$dir.plot)), FALSE)
 
 p.out = list()
 
