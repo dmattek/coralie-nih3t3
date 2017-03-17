@@ -146,6 +146,11 @@ s.cols.meas = c(s.cols.meas, l.met$pos.x, l.met$pos.y, l.met$objLabel)
 # and saved to tCoursesSelected.csv
 
 
+##### 
+## Remove cells (not tracks!) without cytosol identified
+
+dt.nuc = dt.nuc[get(l.met$flErk.mn.cyt.corr) > 0]
+
 #####
 ## Extract uninterrupted timecourses
 ## max 1-frame break (can be many breaks)
