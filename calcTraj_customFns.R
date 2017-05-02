@@ -588,3 +588,21 @@ myTestWilcox = function(dt.arg, var.indep) {
                                                ifelse(p.value < 0.05, "*", 
                                                       ifelse(p.value < 0.1, ".", " "))))]
 }
+
+
+myGgplotTheme = theme_bw(base_size = 18, base_family = "Helvetica") +
+  theme(
+    panel.grid.minor = element_blank(),
+    panel.grid.major = element_blank(),
+    axis.line.x = element_line(color = "black", size = 0.25),
+    axis.line.y = element_line(color = "black", size = 0.25),
+    axis.text.x = element_text(size = 12),
+    axis.text.y = element_text(size = 12),
+    strip.text.x = element_text(size = 14, face = "bold"),
+    strip.text.y = element_text(size = 14, face = "bold"),
+    strip.background = element_blank(),
+    legend.key = element_blank(),
+    legend.key.height = unit(1, "lines"),
+    legend.key.width = unit(2, "lines"),
+    legend.position = "none"
+  )

@@ -12,7 +12,7 @@ require(xlsx)
 require(RCurl)
 
 # Source file with auxilary functions
-source('calcTraj_customFns.R')
+#source('calcTraj_customFns.R')
 
 # auxScript = getURL("https://www.dropbox.com/s/44jyl6ozdusyfu7/calcTraj_customFns.R?dl=0", ssl.verifypeer = FALSE)
 # eval(parse(text = auxScript))
@@ -32,8 +32,8 @@ source('calcTraj_customFns.R')
 s.met.well = 'Metadata_Well' # Well column in experimental description is changed to this
 s.met.sitestim = 'Metadata_SiteStim' # Column with merged site and stimulation conditions
 
-# names of two files with paramaters for analysis and experiment
-# these files should be located one folder up of cp.out from which the script is executed
+# name of the file with paramaters for analysis and experiment
+# this file should be located one folder up of cp.out from which the script is executed
 s.par.plot = '../plotFormat.xlsx'
 
 ####
@@ -252,11 +252,11 @@ p.out$traj_ERK_cytoVnuc_noIllumCorr = myGgplotTraj(
   xlab.arg = "Time (min)",
   ylab.arg = "Erk-KTR: cytoplasmic vs nuclear (mean fl.int.)",
   plotlab.arg = "Raw data from uncorrected images",
-  facet.arg = 'Image_Metadata_Site + Stimulation_duration + Stimulation_intensity + Stimulation_treatment',
+  facet.arg = paste0(s.met.site, ' + Stimulation_duration + Stimulation_intensity + Stimulation_treatment'),
   dt.stim.arg = dt.t.stim.resh,
   tfreq.arg = n.t.freq,
   maxrt.arg = max(max(dt.sel[[s.met.time]]) + 60),
-  xaxisbreaks.arg = 60,
+  xaxisbreaks.arg = l.par$plot.x.interv,
   facet.ncol.arg = l.par$plot.facets.ncol.site,
   ylim.arg = c(0, 1.2),
   stim.bar.height.arg = 0.05,
@@ -271,14 +271,14 @@ p.out$traj_ERK_cytoVnuc_illumCorr = myGgplotTraj(
   xlab.arg = "Time (min)",
   ylab.arg = "Erk-KTR: cytoplasmic vs nuclear (mean fl.int.)",
   plotlab.arg = "Raw data from bg-corrected images",
-  facet.arg = 'Image_Metadata_Site + Stimulation_duration + Stimulation_intensity + Stimulation_treatment',
+  facet.arg = paste0(s.met.site, ' + Stimulation_duration + Stimulation_intensity + Stimulation_treatment'),
   facet.ncol.arg = l.par$plot.facets.ncol.site,
   dt.stim.arg = dt.t.stim.resh,
   stim.bar.height.arg = 0.05,
   stim.bar.width.arg = 1,
   tfreq.arg = n.t.freq,
   maxrt.arg = max(max(dt.sel[[s.met.time]]) + 60),
-  xaxisbreaks.arg = 60,
+  xaxisbreaks.arg = l.par$plot.x.interv,
   ylim.arg = c(0, 1.2)
 )
 
@@ -301,7 +301,7 @@ p.out$traj_ERK_cytoVnuc_illumCorr_perCond = myGgplotTraj(
   stim.bar.width.arg = 1,
   tfreq.arg = n.t.freq,
   maxrt.arg = max(max(dt.sel[[s.met.time]]) + 60),
-  xaxisbreaks.arg = 60,
+  xaxisbreaks.arg = l.par$plot.x.interv,
   ylim.arg = c(0, 1.2)
 )
 
@@ -314,11 +314,11 @@ p.out$traj_ERK_nuc_illumCorr = myGgplotTraj(
   xlab.arg = "Time (min)",
   ylab.arg = "Erk-KTR:  nuclear (mean fl.int.)",
   plotlab.arg = "Raw data from bg-corrected images",
-  facet.arg = 'Image_Metadata_Site + Stimulation_duration + Stimulation_intensity + Stimulation_treatment',
+  facet.arg = paste0(s.met.site, ' + Stimulation_duration + Stimulation_intensity + Stimulation_treatment'),
   dt.stim.arg = dt.t.stim.resh,
   tfreq.arg = n.t.freq,
   maxrt.arg = max(max(dt.sel[[s.met.time]]) + 60),
-  xaxisbreaks.arg = 60,
+  xaxisbreaks.arg = l.par$plot.x.interv,
   ylim.arg = c(0, 1),
   facet.ncol.arg = l.par$plot.facets.ncol.site,
   stim.bar.height.arg = 0.05,
@@ -335,14 +335,14 @@ p.out$traj_ERK_nucInv_illumCorr = myGgplotTraj(
   xlab.arg = "Time (min)",
   ylab.arg = "Erk-KTR: 1 / nuclear (mean fl.int.)",
   plotlab.arg = "Raw data from bg-corrected images",
-  facet.arg = 'Image_Metadata_Site + Stimulation_duration + Stimulation_intensity + Stimulation_treatment',
+  facet.arg = paste0(s.met.site, ' + Stimulation_duration + Stimulation_intensity + Stimulation_treatment'),
   facet.ncol.arg = l.par$plot.facets.ncol.site,
   dt.stim.arg = dt.t.stim.resh,
   stim.bar.height.arg = 0.05,
   stim.bar.width.arg = 1,
   tfreq.arg = n.t.freq,
   maxrt.arg = max(max(dt.sel[[s.met.time]]) + 60),
-  xaxisbreaks.arg = 60,
+  xaxisbreaks.arg = l.par$plot.x.interv,
   ylim.arg = c(0, 20)
 )
 
