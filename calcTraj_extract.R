@@ -319,7 +319,7 @@ p.out$traj_ERK_nuc_illumCorr = myGgplotTraj(
   tfreq.arg = n.t.freq,
   maxrt.arg = max(max(dt.sel[[s.met.time]]) + 60),
   xaxisbreaks.arg = l.par$plot.x.interv,
-  ylim.arg = c(0, 1),
+  ylim.arg = c(0, 0.3),
   facet.ncol.arg = l.par$plot.facets.ncol.site,
   stim.bar.height.arg = 0.05,
   stim.bar.width.arg = 1
@@ -343,7 +343,7 @@ p.out$traj_ERK_nucInv_illumCorr = myGgplotTraj(
   tfreq.arg = n.t.freq,
   maxrt.arg = max(max(dt.sel[[s.met.time]]) + 60),
   xaxisbreaks.arg = l.par$plot.x.interv,
-  ylim.arg = c(0, 20)
+  ylim.arg = c(0, 30)
 )
 
 
